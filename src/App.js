@@ -1,20 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import WeatherCard from "./components/WeatherCard/component";
 
 function App() {
-  const data = async () => {
+  const [query, setQuery] = useState("Lincoln, us");
+  const [weather, setWeather] = useState({
+    temp: null,
+    city: null,
+    condition: null,
+    country: null,
+  });
+
+  const data = async (q) => {
     const apiRes = await fetch(
-      "http://api.openweathermap.org/data/2.5/weather?q=London,uk&appid=9d8a119063bea234516fb6e4b4644485"
+      `http://api.openweathermap.org/data/2.5/weather?q=${q}&units=metric&appid=9d8a119063bea234516fb6e4b4644485`
     );
     const resJSON = await apiRes.json();
     return resJSON;
   };
-  data().then((res) => console.log(res));
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    data(query).then((res) =>
+      setWeather({
+        temp: res.main.temp,
+        city: res.name,
+        condition: res.weather[0].main,
+        country: res.sys.country,
+      })
+    );
+  };
+  useEffect(() => {
+    data(query).then((res) =>
+      setWeather({
+        temp: res.main.temp,
+        city: res.name,
+        condition: res.weather[0].main,
+        country: res.sys.country,
+      })
+    );
+  }, []);
   return (
     <div className="App">
-      <WeatherCard temp={-20} condition="Clear" city="Omaha" country="USA" />
-      <WeatherCard temp={20} condition="Tornado" city="test" country="test" />
+      <WeatherCard
+        temp={weather.temp}
+        condition={weather.condition}
+        city={weather.city}
+        country={weather.country}
+      />
+
+      <form>
+        <input value={query} onChange={(e) => setQuery(e.target.value)} />
+        <button onClick={(e) => handleSearch(e)}>Search</button>
+      </form>
     </div>
   );
 }
